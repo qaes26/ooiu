@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لحن العمر - نغم 🎼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e8b23f; /* Gold/Amber */
+            --secondary: #ff2a5f; /* Deep Pink */
+            --bg-color: #050508;
+            --glass-bg: rgba(20, 10, 20, 0.4);
+        }
+
+        /* السماح بالنزول للأسفل مع إخفاء الشريط الأفقي */
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto; 
+            background-color: var(--bg-color);
+            font-family: 'Cairo', sans-serif;
+            color: white;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 100vh;
+        }
+
+        /* Animated Soundwave Background */
+        .soundwave-bg {
+            position: fixed;
+            bottom: 0; left: 0; width: 100vw; height: 30vh;
+            background: repeating-linear-gradient(
+                to right,
+                transparent,
+                transparent 10px,
+                rgba(232, 178, 63, 0.05) 10px,
+                rgba(232, 178, 63, 0.05) 20px
+            );
+            mask-image: linear-gradient(to top, black, transparent);
+            -webkit-mask-image: linear-gradient(to top, black, transparent);
+            animation: waveSlide 20s linear infinite;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        @keyframes waveSlide {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1000px; }
+        }
+
+        #visualizer {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Container - تم تعديل الارتفاع ليتمدد مع المحتوى */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem 6rem 1rem; /* مساحة من الأسفل لعدم التداخل مع التوقيع */
+            box-sizing: border-box;
+        }
+
+        /* Hold to Unlock UI */
+        #unlock-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .hold-btn-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .hold-btn-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed rgba(232, 178, 63, 0.3);
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .hold-btn-progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: opacity 0.3s ease;
+        }
+
+        .hold-btn-core {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, var(--secondary) 0%, #800020 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 42, 95, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-heartbeat 1.5s infinite;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+
+        @keyframes pulse-heartbeat {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 42, 95, 0.4); }
+            15% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255, 42, 95, 0.8); }
+            30% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 42, 95, 0.4); }
+            45% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255, 42, 95, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 42, 95, 0.4); }
+        }
+
+        .instruction-text {
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            color: #d1d5db;
+            letter-spacing: 1px;
+            animation: breathe 2s infinite;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* Main Content */
+        #main-content {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            pointer-events: none;
+            display: none; /* مخفي في البداية لعدم أخذ مساحة */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            transition: all 1.2s ease-out;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        #main-content.visible {
+            display: flex; /* يظهر كعنصر مرن عند فتح القفل */
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .name-title {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 4rem; /* متجاوب */
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 10px 30px rgba(232, 178, 63, 0.4);
+            filter: drop-shadow(0px 4px 2px rgba(0,0,0,0.5));
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #e5e7eb;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        /* Glassmorphism Timer Cards */
+        .timer-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            flex-wrap: wrap; /* يسمح بالنزول لسطر جديد إذا كانت الشاشة صغيرة */
+            justify-content: center;
+            width: 100%;
+        }
+
+        .time-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(232, 178, 63, 0.15);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 15px 10px;
+            flex: 1 1 70px; /* مرونة في العرض */
+            max-width: 100px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .time-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 10px var(--primary);
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .time-label {
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-top: 8px;
+            font-weight: 700;
+        }
+
+        /* Typewriter text container */
+        .romantic-msg-container {
+            margin-top: 2.5rem;
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        .romantic-msg {
+            font-size: 1.1rem; /* حجم مناسب للموبايل */
+            line-height: 2; /* مسافة مريحة بين السطور لمنع التداخل */
+            text-align: center;
+            color: #f3f4f6;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            word-wrap: break-word;
+        }
+        
+        .cursor::after {
+            content: '|';
+            color: var(--primary);
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Footer Signature */
+        .footer-signature {
+            position: fixed;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            z-index: 20;
+            opacity: 0.8;
+            pointer-events: none; /* حتى لا يعيق اللمس والنزول */
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            color: #a1a1aa;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 15px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .qais-name {
+            font-family: 'Aref Ruqaa', serif;
+            font-size: 1.2rem;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 5px;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.4);
+            font-weight: bold;
+        }
+
+        /* تعديلات للشاشات الكبيرة */
+        @media (min-width: 768px) {
+            .name-title { font-size: 5rem; }
+            .subtitle { font-size: 1.5rem; }
+            .time-box { padding: 20px; max-width: 120px; }
+            .time-value { font-size: 2.8rem; }
+            .time-label { font-size: 1rem; }
+            .romantic-msg { font-size: 1.4rem; line-height: 2.2; }
+            .hold-btn-container { width: 160px; height: 160px; }
+            .hold-btn-core { width: 90px; height: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- موسيقى الخلفية -->
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/01/26/audio_d0c6ff1bfd.mp3?filename=romantic-piano-114494.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="soundwave-bg" id="soundwave"></div>
+    <canvas id="visualizer"></canvas>
+
+    <div class="content-wrapper" id="wrapper">
+        
+        <!-- واجهة الضغط المستمر -->
+        <div id="unlock-section">
+            <div class="hold-btn-container" id="hold-btn">
+                <div class="hold-btn-bg"></div>
+                <div class="hold-btn-progress" id="progress-ring"></div>
+                <div class="hold-btn-core" id="core-btn">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        <path d="M19 3v4h-2V3h2z" fill="rgba(255,255,255,0.5)"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="instruction-text" id="instruction">اضغطي باستمرار لتشغيل لحننا...</p>
+        </div>
+
+        <!-- المحتوى الرئيسي (العداد والرسالة) -->
+        <div id="main-content">
+            <h1 class="name-title">نغــم</h1>
+            <p class="subtitle">أجمل لحن عُزف في حياتي</p>
+            
+            <div class="timer-container">
+                <div class="time-box">
+                    <div class="time-value" id="t-days">00</div>
+                    <div class="time-label">يـــوم</div>
+                </div>
+                <div class="time-box">
+                    <div class="time-value" id="t-hours">00</div>
+                    <div class="time-label">سـاعـة</div>
+                </div>
+                <div class="time-box">
+                    <div class="time-value" id="t-mins">00</div>
+                    <div class="time-label">دقيقـة</div>
+                </div>
+                <div class="time-box">
+                    <div class="time-value" id="t-secs">00</div>
+                    <div class="time-label">ثانيـة</div>
+                </div>
+            </div>
+
+            <div class="romantic-msg-container">
+                <p class="romantic-msg cursor" id="typed-text"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- التوقيع في الأسفل -->
+    <div class="footer-signature">
+        <span class="footer-text">صُنع بحب وموسيقى.. <span class="qais-name">من إعداد قيس جازي</span></span>
+    </div>
+
+    <script>
+        // --- 1. تأثيرات الخلفية والجزيئات ---
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let isUnlocked = false;
+        const symbols = ['🎵', '🎶', '✨', '❤️', '🎼'];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class NoteParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                this.size = Math.random() * 15 + 10;
+                this.speedX = (Math.random() - 0.5) * 4;
+                this.speedY = (Math.random() - 0.5) * 6 - 2;
+                this.gravity = 0.015;
+                this.alpha = 1;
+                this.rotation = Math.random() * 360;
+                this.rotSpeed = (Math.random() - 0.5) * 4;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.font = `${this.size}px Arial`;
+                ctx.globalAlpha = this.alpha;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = (this.symbol === '❤️') ? '#ff2a5f' : '#e8b23f';
+                ctx.fillText(this.symbol, 0, 0);
+                ctx.restore();
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += this.gravity;
+                this.rotation += this.rotSpeed;
+                this.alpha -= 0.01;
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (isUnlocked) {
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                    if (particles[i].alpha <= 0) {
+                        particles.splice(i, 1);
+                        i--;
+                    }
+                }
+                if(Math.random() > 0.96) {
+                    let p = new NoteParticle(Math.random() * width, height + 30);
+                    p.speedY = -(Math.random() * 2 + 1);
+                    p.gravity = 0;
+                    p.alpha = 0.4;
+                    particles.push(p);
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        // --- 2. منطق زر الضغط المستمر ---
+        const holdBtn = document.getElementById('hold-btn');
+        const coreBtn = document.getElementById('core-btn');
+        const progressRing = document.getElementById('progress-ring');
+        const unlockSection = document.getElementById('unlock-section');
+        const mainContent = document.getElementById('main-content');
+        const bgMusic = document.getElementById('bg-music');
+        const soundwave = document.getElementById('soundwave');
+
+        let holdTimer;
+        let progressValue = 0;
+
+        function startPressing(e) {
+            // منع التحديد العشوائي وتفعيل اللمس بسلاسة
+            if(e.type === 'touchstart') e.preventDefault(); 
+            progressRing.style.opacity = '1';
+            coreBtn.style.transform = 'scale(0.85)';
+            
+            holdTimer = setInterval(() => {
+                progressValue += 2; // سرعة امتلاء الدائرة
+                let angle = (progressValue / 100) * 360;
+                progressRing.style.background = `conic-gradient(var(--primary) ${angle}deg, transparent 0)`;
+
+                if (progressValue >= 100) {
+                    unlockReveal();
+                }
+            }, 30);
+        }
+
+        function stopPressing() {
+            if (!isUnlocked) {
+                clearInterval(holdTimer);
+                progressValue = 0;
+                progressRing.style.background = 'transparent';
+                progressRing.style.opacity = '0';
+                coreBtn.style.transform = 'scale(1)';
+            }
+        }
+
+        function unlockReveal() {
+            isUnlocked = true;
+            clearInterval(holdTimer);
+            
+            // تشغيل الموسيقى بصوت يتدرج بالارتفاع
+            bgMusic.volume = 0;
+            bgMusic.play();
+            let fadeAudio = setInterval(() => {
+                if(bgMusic.volume < 0.9) bgMusic.volume += 0.1;
+                else clearInterval(fadeAudio);
+            }, 300);
+
+            // انتقال الواجهة
+            unlockSection.style.transform = 'translateY(-50%) scale(1.2)';
+            unlockSection.style.opacity = '0';
+            soundwave.style.opacity = '1'; 
+            
+            setTimeout(() => {
+                unlockSection.style.display = 'none';
+                
+                // إظهار المحتوى الرئيسي والسماح بالنزول
+                mainContent.classList.add('visible');
+                
+                // نزول خفيف للأسفل برمجياً للتركيز على الكلام إذا كانت الشاشة صغيرة
+                if(window.innerWidth < 768) {
+                    setTimeout(() => {
+                        window.scrollTo({ top: 50, behavior: 'smooth' });
+                    }, 500);
+                }
+
+                startTimer();
+                setTimeout(startTypingMessage, 800);
+            }, 600);
+
+            // انفجار النوتات الموسيقية
+            const rect = holdBtn.getBoundingClientRect();
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            
+            for(let i = 0; i < 50; i++) {
+                particles.push(new NoteParticle(centerX, centerY));
+            }
+        }
+
+        holdBtn.addEventListener('mousedown', startPressing);
+        window.addEventListener('mouseup', stopPressing);
+        holdBtn.addEventListener('mouseleave', stopPressing);
+        holdBtn.addEventListener('touchstart', startPressing, {passive: false});
+        window.addEventListener('touchend', stopPressing);
+
+        // --- 3. منطق عداد الوقت ---
+        // يبدأ من هذا التاريخ (20/2/2026)
+        const startDate = new Date('2026-02-20T00:00:00').getTime();
+        
+        const elDays = document.getElementById('t-days');
+        const elHours = document.getElementById('t-hours');
+        const elMins = document.getElementById('t-mins');
+        const elSecs = document.getElementById('t-secs');
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = now - startDate;
+
+            if (distance < 0) return; 
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            elDays.innerText = days.toString().padStart(2, '0');
+            elHours.innerText = hours.toString().padStart(2, '0');
+            elMins.innerText = minutes.toString().padStart(2, '0');
+            elSecs.innerText = seconds.toString().padStart(2, '0');
+        }
+
+        function startTimer() {
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // --- 4. تأثير الكتابة التلقائية ---
+        const messageText = "منذ 20/2/2026، لم يعد الوقت يُحسب بالساعات والأيام، بل بنبضات قلبي التي تنبض باسمك. أنتِ لستِ مجرد قصة حب، أنتِ اللحن الذي جعل لحياتي معنى.. أحبكِ في كل ثانية تمر يا نغم قلبي. ❤️";
+        const typedEl = document.getElementById('typed-text');
+        let typeIndex = 0;
+
+        function startTypingMessage() {
+            if (typeIndex < messageText.length) {
+                typedEl.innerHTML = messageText.substring(0, typeIndex + 1);
+                typeIndex++;
+                
+                // نزول تلقائي مع الكتابة إذا تجاوزت مساحة الشاشة
+                if (window.innerHeight < document.body.scrollHeight) {
+                   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }
+
+                setTimeout(startTypingMessage, 45); 
+            } else {
+                typedEl.classList.remove('cursor');
+                typedEl.innerHTML = typedEl.innerHTML.replace('20/2/2026', '<span style="color:var(--primary); font-weight:bold; font-size:1.1em;">20/2/2026</span>');
+                typedEl.innerHTML = typedEl.innerHTML.replace('نغم', '<span style="color:var(--secondary); font-weight:bold; font-size:1.1em;">نغم</span>');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
